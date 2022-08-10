@@ -115,7 +115,8 @@ delimiter
     ;
 
 expression
-   : (STRING | number)                      #LiteralExpression
+   : varName                                #ReferenceExpression
+   | (STRING | number)                      #LiteralExpression
    | expression '^' expression              #ExponentionalExpression
    | expression ('+' | '-') expression      #AdditiveExpression
    | expression ('*' | '/') expression      #MultiplicativeExpression
