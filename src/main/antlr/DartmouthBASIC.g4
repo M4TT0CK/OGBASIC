@@ -1,6 +1,10 @@
 
 grammar DartmouthBASIC;
 
+@header {
+package listeners;
+}
+
 program
     : line* EOF
     ;
@@ -241,8 +245,8 @@ RETURN
     ;
 
 EOL
-   : [\r\n]+
-   ;
+    : [\r\n]+
+    ;
 
 DIM
     : 'DIM'
@@ -285,5 +289,5 @@ FUNCTION_NAME
     ;
 
 WS
-   : [ \t] -> skip
-   ;
+    : [ \t] -> skip
+    ;
