@@ -1,5 +1,7 @@
 package listeners
 
+import kotlin.math.pow
+
 class Listener: DartmouthBASICBaseListener() {
     private val varTable = mutableMapOf<String, Any>()
     private fun processPrintList(printList: DartmouthBASICParser.PrintListContext, printString: String): String {
@@ -20,37 +22,57 @@ class Listener: DartmouthBASICBaseListener() {
         println(printString)
     }
 
-    private fun recursiveParen(context: DartmouthBASICParser.ParenthesizedExpressionContext): Double {
-        return when (context.expression()) {
-            is DartmouthBASICParser.AdditiveExpressionContext -> recursiveAdd(context.expression() as DartmouthBASICParser.AdditiveExpressionContext)
-            is DartmouthBASICParser.ParenthesizedExpressionContext -> recursiveParen(context.expression() as DartmouthBASICParser.ParenthesizedExpressionContext)
-            else -> context.expression().text.toDouble()
+    private fun arithmeticSwitch(expCtx: DartmouthBASICParser.ExpressionContext): Double {
+        return when (expCtx) {
+            is DartmouthBASICParser.ParenthesizedExpressionContext -> recursiveParen(expCtx)
+            is DartmouthBASICParser.AdditiveExpressionContext -> recursiveAdd(expCtx)
+            is DartmouthBASICParser.MultiplicativeExpressionContext -> recursiveMultiply(expCtx)
+            is DartmouthBASICParser.UnaryExpressionContext -> recursiveUnary(expCtx)
+            is DartmouthBASICParser.ExponentionalExpressionContext -> recursiveExponent(expCtx)
+            else -> expCtx.text.toDouble()
         }
     }
 
+    private fun recursiveExponent(context: DartmouthBASICParser.ExponentionalExpressionContext): Double {
+        return arithmeticSwitch(context.expression().first()).pow(context.expression().last().text.toDouble())
+    }
+
+    private fun recursiveMultiply(context: DartmouthBASICParser.MultiplicativeExpressionContext): Double {
+        //TODO: Make this less ridiculous
+        if (context.children[1].text == "*") return arithmeticSwitch(context.expression().first()) * arithmeticSwitch(context.expression().last())
+        return arithmeticSwitch(context.expression().first()) / arithmeticSwitch(context.expression().last())
+    }
+
+    private fun recursiveParen(context: DartmouthBASICParser.ParenthesizedExpressionContext): Double {
+        return arithmeticSwitch(context.expression())
+    }
+
     private fun recursiveAdd(context: DartmouthBASICParser.AdditiveExpressionContext): Double {
-        return when (context.expression().first()) {
-            is DartmouthBASICParser.ParenthesizedExpressionContext -> recursiveParen(context.expression().first() as DartmouthBASICParser.ParenthesizedExpressionContext)
-            is DartmouthBASICParser.AdditiveExpressionContext -> recursiveAdd(context.expression().first() as DartmouthBASICParser.AdditiveExpressionContext)
-            else -> context.expression().first().text.toDouble()
-        } + when (context.expression().last()) {
-            is DartmouthBASICParser.ParenthesizedExpressionContext -> recursiveParen(context.expression().last() as DartmouthBASICParser.ParenthesizedExpressionContext)
-            is DartmouthBASICParser.AdditiveExpressionContext -> recursiveAdd(context.expression().last() as DartmouthBASICParser.AdditiveExpressionContext)
-            else -> context.expression().last().text.toDouble()
-        }
+        //TODO: Make this less ridiculous
+        if (context.children[1].text == "-") return arithmeticSwitch(context.expression().first()) - arithmeticSwitch(context.expression().last())
+        return arithmeticSwitch(context.expression().first()) + arithmeticSwitch(context.expression().last())
+    }
+
+    private fun recursiveUnary(context: DartmouthBASICParser.UnaryExpressionContext): Double {
+        return arithmeticSwitch(context.expression()) * (-1)
     }
 
     override fun enterAssignmentStatement(ctx: DartmouthBASICParser.AssignmentStatementContext) {
         val varName = ctx.varName().text
 
-        if (ctx.expression() is DartmouthBASICParser.LiteralExpressionContext) {
-            val value = ctx.expression().text
-            if ((ctx.expression() as DartmouthBASICParser.LiteralExpressionContext).STRING() != null)
-                value.substring(1, value.length - 1)
-            varTable[varName] = value
-        }
-        if (ctx.expression() is DartmouthBASICParser.AdditiveExpressionContext) {
-            varTable[varName] = recursiveAdd(ctx.expression() as DartmouthBASICParser.AdditiveExpressionContext)
+        when (ctx.expression()) {
+            is DartmouthBASICParser.LiteralExpressionContext -> {
+                val value = ctx.expression().text
+                if ((ctx.expression() as DartmouthBASICParser.LiteralExpressionContext).STRING() != null)
+                    value.substring(1, value.length - 1)
+                varTable[varName] = value
+            }
+            is DartmouthBASICParser.ParenthesizedExpressionContext -> varTable[varName] = recursiveParen((ctx.expression() as DartmouthBASICParser.ParenthesizedExpressionContext))
+            is DartmouthBASICParser.AdditiveExpressionContext -> varTable[varName] = recursiveAdd(ctx.expression() as DartmouthBASICParser.AdditiveExpressionContext)
+            is DartmouthBASICParser.MultiplicativeExpressionContext -> varTable[varName] = recursiveMultiply(ctx.expression() as DartmouthBASICParser.MultiplicativeExpressionContext)
+            is DartmouthBASICParser.UnaryExpressionContext -> varTable[varName] = recursiveUnary(ctx.expression() as DartmouthBASICParser.UnaryExpressionContext)
+            is DartmouthBASICParser.ExponentionalExpressionContext -> varTable[varName] = recursiveExponent(ctx.expression() as DartmouthBASICParser.ExponentionalExpressionContext)
+            else -> println("error")
         }
     }
 
@@ -58,6 +80,6 @@ class Listener: DartmouthBASICBaseListener() {
         val varName = ctx.expression().text
         val value = readLine()!!
 
-        varTable[varName] = value.toInt()
+        varTable[varName] = value.toDouble()
     }
 }

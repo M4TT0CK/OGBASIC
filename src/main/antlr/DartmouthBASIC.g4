@@ -121,12 +121,12 @@ delimiter
 expression
    : varName                                #ReferenceExpression
    | (STRING | number)                      #LiteralExpression
-   | expression '^' expression              #ExponentionalExpression
-   | expression ('+' | '-') expression      #AdditiveExpression
-   | expression ('*' | '/') expression      #MultiplicativeExpression
-   | '-' expression                         #UnaryExpression
-   | FUNCTION_NAME '(' expression ')'       #ArgumentExpression
    | '(' expression ')'                     #ParenthesizedExpression
+   | '-' expression                         #UnaryExpression
+   | expression '^' expression              #ExponentionalExpression
+   | expression (MULT | DIVIDE) expression  #MultiplicativeExpression
+   | expression (ADD | SUBTRACT) expression #AdditiveExpression
+   | FUNCTION_NAME '(' expression ')'       #ArgumentExpression
    | expression comparator expression       #EqualityExpression
    ;
 
@@ -281,6 +281,22 @@ NEXT
 
 INPUT
     : 'INPUT'
+    ;
+
+MULT
+    : '*'
+    ;
+
+DIVIDE
+    : '/'
+    ;
+
+ADD
+    : '+'
+    ;
+
+SUBTRACT
+    : '-'
     ;
 
 FUNCTION_NAME
