@@ -19,6 +19,10 @@ fun main(args: Array<String>) {
         300 PRINT K
         310 LET L = 3^3
         320 PRINT L
+        330 LET M = L + K
+        340 PRINT M
+        350 LET N = M
+        360 PRINT N
         
     """.trimIndent()
 

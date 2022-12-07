@@ -22,6 +22,13 @@ class Listener: DartmouthBASICBaseListener() {
         println(printString)
     }
 
+    private fun reference(context: DartmouthBASICParser.ReferenceExpressionContext): Double {
+        val ref = varTable[context.varName().text]
+        if (ref is Double) return ref
+        else
+            throw RefException("Error: Not a number.")
+    }
+
     private fun arithmeticSwitch(expCtx: DartmouthBASICParser.ExpressionContext): Double {
         return when (expCtx) {
             is DartmouthBASICParser.ParenthesizedExpressionContext -> recursiveParen(expCtx)
@@ -29,6 +36,7 @@ class Listener: DartmouthBASICBaseListener() {
             is DartmouthBASICParser.MultiplicativeExpressionContext -> recursiveMultiply(expCtx)
             is DartmouthBASICParser.UnaryExpressionContext -> recursiveUnary(expCtx)
             is DartmouthBASICParser.ExponentionalExpressionContext -> recursiveExponent(expCtx)
+            is DartmouthBASICParser.ReferenceExpressionContext -> reference(expCtx)
             else -> expCtx.text.toDouble()
         }
     }
@@ -72,6 +80,7 @@ class Listener: DartmouthBASICBaseListener() {
             is DartmouthBASICParser.MultiplicativeExpressionContext -> varTable[varName] = recursiveMultiply(ctx.expression() as DartmouthBASICParser.MultiplicativeExpressionContext)
             is DartmouthBASICParser.UnaryExpressionContext -> varTable[varName] = recursiveUnary(ctx.expression() as DartmouthBASICParser.UnaryExpressionContext)
             is DartmouthBASICParser.ExponentionalExpressionContext -> varTable[varName] = recursiveExponent(ctx.expression() as DartmouthBASICParser.ExponentionalExpressionContext)
+            is DartmouthBASICParser.ReferenceExpressionContext -> varTable[varName] = reference(ctx.expression() as DartmouthBASICParser.ReferenceExpressionContext)
             else -> println("error")
         }
     }
@@ -82,4 +91,10 @@ class Listener: DartmouthBASICBaseListener() {
 
         varTable[varName] = value.toDouble()
     }
+
+    override fun enterConditionalStatement(ctx: DartmouthBASICParser.ConditionalStatementContext) {
+        super.enterConditionalStatement(ctx)
+    }
 }
+
+class RefException(message:String): Exception(message)
