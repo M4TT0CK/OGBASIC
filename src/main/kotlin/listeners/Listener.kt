@@ -1,9 +1,12 @@
 package listeners
 
+import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.tree.ParseTreeWalker
 import kotlin.math.pow
 
 class Listener: DartmouthBASICBaseListener() {
-    private val varTable = mutableMapOf<String, Any>()
+    var varTable = mutableMapOf<String, Any>()
+    var statementTable = mutableMapOf<Int, ParserRuleContext>()
     private fun processPrintList(printList: DartmouthBASICParser.PrintListContext, printString: String): String {
         var printable = printString
         val expressionText = printList.expression().text
@@ -17,7 +20,25 @@ class Listener: DartmouthBASICBaseListener() {
         return if (printList.printList() != null) processPrintList(printList.printList(), printable) else printable
     }
 
+    override fun enterGotoStatement(ctx: DartmouthBASICParser.GotoStatementContext) {
+        val statement = statementTable[ctx.expression().text.toInt()]
+        val def = Listener()
+        def.varTable = varTable
+        def.statementTable = statementTable
+        val walker = ParseTreeWalker()
+        walker.walk(def, statement?.parent?.parent?.parent)
+
+//        when (statement) {
+//            is DartmouthBASICParser.PrintStatementContext -> enterPrintStatement(statement)
+//            is DartmouthBASICParser.AssignmentStatementContext -> enterAssignmentStatement(statement)
+//            is DartmouthBASICParser.InputStatementContext -> enterInputStatement(statement)
+//            is DartmouthBASICParser.ConditionalStatementContext -> enterConditionalStatement(statement)
+//            else -> println("error")
+//        }
+    }
+
     override fun enterPrintStatement(ctx: DartmouthBASICParser.PrintStatementContext) {
+        statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
         val printString = processPrintList(ctx.printList(), "")
         println(printString)
     }
@@ -66,6 +87,7 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterAssignmentStatement(ctx: DartmouthBASICParser.AssignmentStatementContext) {
+        statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
         val varName = ctx.varName().text
 
         when (ctx.expression()) {
@@ -86,14 +108,38 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterInputStatement(ctx: DartmouthBASICParser.InputStatementContext) {
+        statementTable[(ctx.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
         val varName = ctx.expression().text
-        val value = readLine()!!
+        val value = readln()
 
         varTable[varName] = value.toDouble()
     }
 
+//    private fun computeNumericalLiteral
+
+    private fun evaluateEqualityExpression(exp: DartmouthBASICParser.EqualityExpressionContext): Boolean {
+        return when (exp.comparator().text) {
+            "<=" -> exp.expression().first().text.toDouble() <= exp.expression().last().text.toDouble()
+            ">=" -> exp.expression().first().text.toDouble() >= exp.expression().last().text.toDouble()
+            "<" -> exp.expression().first().text.toDouble() < exp.expression().last().text.toDouble()
+            ">" -> exp.expression().first().text.toDouble() > exp.expression().last().text.toDouble()
+            "=" -> exp.expression().first().text.toDouble() == exp.expression().last().text.toDouble()
+            else -> false
+        }
+    }
+
+    private fun evaluateBooleanExpression(exp: DartmouthBASICParser.ExpressionContext): Boolean {
+        return when (exp) {
+            is DartmouthBASICParser.EqualityExpressionContext -> evaluateEqualityExpression(exp)
+            else -> false
+        }
+    }
+
     override fun enterConditionalStatement(ctx: DartmouthBASICParser.ConditionalStatementContext) {
-        super.enterConditionalStatement(ctx)
+        statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
+        val computedExp = evaluateBooleanExpression(ctx.expression())
+        if (computedExp)
+            println(computedExp)
     }
 }
 
