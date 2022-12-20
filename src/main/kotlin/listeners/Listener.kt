@@ -1,5 +1,6 @@
 package listeners
 
+import listeners.DartmouthBASICParser.LineContext
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import kotlin.math.pow
@@ -7,6 +8,10 @@ import kotlin.math.pow
 class Listener: DartmouthBASICBaseListener() {
     var varTable = mutableMapOf<String, Any>()
     var statementTable = mutableMapOf<Int, ParserRuleContext>()
+
+    override fun enterProgram(ctx: DartmouthBASICParser.ProgramContext) {
+        println()
+    }
     private fun processPrintList(printList: DartmouthBASICParser.PrintListContext, printString: String): String {
         var printable = printString
         val expressionText = printList.expression().text
@@ -26,7 +31,9 @@ class Listener: DartmouthBASICBaseListener() {
         def.varTable = varTable
         def.statementTable = statementTable
         val walker = ParseTreeWalker()
-        walker.walk(def, statement?.parent?.parent?.parent)
+        val prunedProgram = pruneProgram(statement?.parent?.parent?.parent as DartmouthBASICParser.ProgramContext, (statement.parent.parent as LineContext).number().text.toInt() )
+        walker.walk(def, prunedProgram)
+
 
 //        when (statement) {
 //            is DartmouthBASICParser.PrintStatementContext -> enterPrintStatement(statement)
@@ -37,6 +44,17 @@ class Listener: DartmouthBASICBaseListener() {
 //        }
     }
 
+    private fun pruneProgram(ctx: DartmouthBASICParser.ProgramContext, statementLine: Int): DartmouthBASICParser.ProgramContext {
+        var index = 0
+        val children = ctx.children
+        for (i in 0..children.size - 2)
+            if ((children[i] as DartmouthBASICParser.LineContext).number().text.toInt() == statementLine)
+                index = i
+
+        ctx.children = ctx.children.subList(index, ctx.children.size)
+        return ctx
+    }
+
     override fun enterPrintStatement(ctx: DartmouthBASICParser.PrintStatementContext) {
         statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
         val printString = processPrintList(ctx.printList(), "")
@@ -44,10 +62,11 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     private fun reference(context: DartmouthBASICParser.ReferenceExpressionContext): Double {
-        val ref = varTable[context.varName().text]
-        if (ref is Double) return ref
-        else
-            throw RefException("Error: Not a number.")
+        return when (val ref = varTable[context.varName().text]) {
+            is Double -> ref
+            is String -> ref.toDouble()
+            else -> throw RefException("Error: Not a number.")
+        }
     }
 
     private fun arithmeticSwitch(expCtx: DartmouthBASICParser.ExpressionContext): Double {
