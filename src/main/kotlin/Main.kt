@@ -10,7 +10,8 @@ fun main(args: Array<String>) {
         380 LET Z = 0
         400 LET Z = Z + 1
         410 PRINT Z
-        420 GOTO 400
+        420 IF Z < 21 THEN 400
+        430 PRINT "This is a test"
         
     """.trimIndent()
 
@@ -18,5 +19,6 @@ fun main(args: Array<String>) {
     val def = Listener()
     val walker = ParseTreeWalker()
     val tree = parser.program()
+    def.programHolder = tree.children.toList()
     walker.walk(def, tree)
 }

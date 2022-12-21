@@ -52,7 +52,7 @@ loopTerminator
     ;
 
 conditionalStatement
-    : IF expression THEN statement
+    : IF expression THEN expression
     ;
 
 dataStatement

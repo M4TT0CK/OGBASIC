@@ -1,16 +1,17 @@
 package listeners
 
-import listeners.DartmouthBASICParser.LineContext
 import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import kotlin.math.pow
 
 class Listener: DartmouthBASICBaseListener() {
     var varTable = mutableMapOf<String, Any>()
     var statementTable = mutableMapOf<Int, ParserRuleContext>()
+    //TODO: This is hacky as hell--change it
+    var programHolder: List<ParseTree>? = ArrayList()
 
     override fun enterProgram(ctx: DartmouthBASICParser.ProgramContext) {
-        println()
     }
     private fun processPrintList(printList: DartmouthBASICParser.PrintListContext, printString: String): String {
         var printable = printString
@@ -27,31 +28,37 @@ class Listener: DartmouthBASICBaseListener() {
 
     override fun enterGotoStatement(ctx: DartmouthBASICParser.GotoStatementContext) {
         val statement = statementTable[ctx.expression().text.toInt()]
+        val gotoIndex = (ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()
         val def = Listener()
         def.varTable = varTable
         def.statementTable = statementTable
         val walker = ParseTreeWalker()
-        val prunedProgram = pruneProgram(statement?.parent?.parent?.parent as DartmouthBASICParser.ProgramContext, (statement.parent.parent as LineContext).number().text.toInt() )
+        val prunedProgram = pruneProgram(
+            statement?.parent?.parent?.parent as DartmouthBASICParser.ProgramContext,
+            (statement.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt(),
+            gotoIndex
+        )
         walker.walk(def, prunedProgram)
-
-
-//        when (statement) {
-//            is DartmouthBASICParser.PrintStatementContext -> enterPrintStatement(statement)
-//            is DartmouthBASICParser.AssignmentStatementContext -> enterAssignmentStatement(statement)
-//            is DartmouthBASICParser.InputStatementContext -> enterInputStatement(statement)
-//            is DartmouthBASICParser.ConditionalStatementContext -> enterConditionalStatement(statement)
-//            else -> println("error")
-//        }
     }
 
-    private fun pruneProgram(ctx: DartmouthBASICParser.ProgramContext, statementLine: Int): DartmouthBASICParser.ProgramContext {
+    private fun pruneProgram(ctx: DartmouthBASICParser.ProgramContext,
+                             statementLine: Int,
+                             gotoLine: Int): DartmouthBASICParser.ProgramContext {
         var index = 0
         val children = ctx.children
+        //TODO: split this into its own function to remove redundancy
         for (i in 0..children.size - 2)
             if ((children[i] as DartmouthBASICParser.LineContext).number().text.toInt() == statementLine)
                 index = i
 
-        ctx.children = ctx.children.subList(index, ctx.children.size)
+        var endIndex = 0
+        for (i in 0 .. children.size - 2)
+            if ((children[i] as DartmouthBASICParser.LineContext).number().text.toInt() == gotoLine)
+                endIndex = i
+
+        ctx.children = children.subList(index, endIndex + 1)
+        ctx.children.add(children.last())
+
         return ctx
     }
 
@@ -134,15 +141,22 @@ class Listener: DartmouthBASICBaseListener() {
         varTable[varName] = value.toDouble()
     }
 
-//    private fun computeNumericalLiteral
+    private fun computeNumericalLiteral(exp: DartmouthBASICParser.ExpressionContext): Double {
+        return when(exp) {
+            is DartmouthBASICParser.LiteralExpressionContext -> exp.text.toDouble()
+            else -> reference(exp as DartmouthBASICParser.ReferenceExpressionContext)
+        }
+    }
 
     private fun evaluateEqualityExpression(exp: DartmouthBASICParser.EqualityExpressionContext): Boolean {
+        val leftHand = computeNumericalLiteral(exp.expression().first())
+        val rightHand = computeNumericalLiteral(exp.expression().last())
         return when (exp.comparator().text) {
-            "<=" -> exp.expression().first().text.toDouble() <= exp.expression().last().text.toDouble()
-            ">=" -> exp.expression().first().text.toDouble() >= exp.expression().last().text.toDouble()
-            "<" -> exp.expression().first().text.toDouble() < exp.expression().last().text.toDouble()
-            ">" -> exp.expression().first().text.toDouble() > exp.expression().last().text.toDouble()
-            "=" -> exp.expression().first().text.toDouble() == exp.expression().last().text.toDouble()
+            "<=" -> leftHand <= rightHand
+            ">=" -> leftHand >= rightHand
+            "<" -> leftHand < rightHand
+            ">" -> leftHand > rightHand
+            "=" -> leftHand == rightHand
             else -> false
         }
     }
@@ -155,10 +169,27 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterConditionalStatement(ctx: DartmouthBASICParser.ConditionalStatementContext) {
-        statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
-        val computedExp = evaluateBooleanExpression(ctx.expression())
-        if (computedExp)
-            println(computedExp)
+        val statementLine = (ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()
+        statementTable[statementLine] = ctx
+        val computedExp = evaluateBooleanExpression(ctx.expression().first())
+        if (computedExp) {
+            val statement = statementTable[ctx.expression().last().text.toInt()]
+            val def = Listener()
+            def.varTable = varTable
+            def.statementTable = statementTable
+            val walker = ParseTreeWalker()
+            val prunedProgram = pruneProgram(
+                statement?.parent?.parent?.parent as DartmouthBASICParser.ProgramContext,
+                (statement.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt(),
+                statementLine
+            )
+            walker.walk(def, prunedProgram)
+        }
+    }
+
+    override fun exitConditionalStatement(ctx: DartmouthBASICParser.ConditionalStatementContext) {
+        if (programHolder?.size!! > 0)
+            (ctx.parent.parent.parent as DartmouthBASICParser.ProgramContext).children = programHolder
     }
 }
 
