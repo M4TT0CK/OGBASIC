@@ -11,7 +11,7 @@ fun main(args: Array<String>) {
         400 LET Z = Z + 1
         410 PRINT Z
         420 IF Z < 21 THEN 400
-        430 PRINT "This is a test"
+        430 PRINT Z + 23
         
     """.trimIndent()
 

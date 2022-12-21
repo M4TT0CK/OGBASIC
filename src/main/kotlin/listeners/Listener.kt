@@ -6,8 +6,8 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker
 import kotlin.math.pow
 
 class Listener: DartmouthBASICBaseListener() {
-    var varTable = mutableMapOf<String, Any>()
-    var statementTable = mutableMapOf<Int, ParserRuleContext>()
+    private var varTable = mutableMapOf<String, Any>()
+    private var statementTable = mutableMapOf<Int, ParserRuleContext>()
     //TODO: This is hacky as hell--change it
     var programHolder: List<ParseTree>? = ArrayList()
 
@@ -15,15 +15,33 @@ class Listener: DartmouthBASICBaseListener() {
     }
     private fun processPrintList(printList: DartmouthBASICParser.PrintListContext, printString: String): String {
         var printable = printString
-        val expressionText = printList.expression().text
+        val expressionText = processExpression(printList.expression())
         if (printList.expression() is DartmouthBASICParser.LiteralExpressionContext) {
             printable += expressionText.substring(1, expressionText.length - 1)
         } else {
-            printable += varTable[expressionText]
+            printable += expressionText
         }
         if (printList.delimiter() != null)
             printable += if (printList.delimiter().text == ",") "               " else " "
         return if (printList.printList() != null) processPrintList(printList.printList(), printable) else printable
+    }
+
+    private fun processExpression(exp: DartmouthBASICParser.ExpressionContext): String {
+        return when (exp) {
+            is DartmouthBASICParser.LiteralExpressionContext -> {
+                val value = exp.text
+                if (exp.STRING() != null)
+                    value.substring(1, value.length - 1)
+                value
+            }
+            is DartmouthBASICParser.ParenthesizedExpressionContext -> recursiveParen(exp).toString()
+            is DartmouthBASICParser.AdditiveExpressionContext -> recursiveAdd(exp).toString()
+            is DartmouthBASICParser.MultiplicativeExpressionContext -> recursiveMultiply(exp).toString()
+            is DartmouthBASICParser.UnaryExpressionContext -> recursiveUnary(exp).toString()
+            is DartmouthBASICParser.ExponentionalExpressionContext -> recursiveExponent(exp).toString()
+            is DartmouthBASICParser.ReferenceExpressionContext -> reference(exp).toString()
+            else -> ""
+        }
     }
 
     override fun enterGotoStatement(ctx: DartmouthBASICParser.GotoStatementContext) {
