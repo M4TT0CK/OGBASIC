@@ -1,7 +1,6 @@
 package listeners
 
 import org.antlr.v4.runtime.ParserRuleContext
-import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import org.antlr.v4.runtime.tree.TerminalNode
@@ -10,11 +9,8 @@ import kotlin.math.*
 class Listener: DartmouthBASICBaseListener() {
     private var varTable = mutableMapOf<String, Any>()
     var statementTable = mutableMapOf<Int, ParserRuleContext>()
-    var functionTable = mutableMapOf<String, Any>()
-    var gotoAndSubTable: MutableMap<Int, DartmouthBASICParser.ProgramContext> = mutableMapOf()
     //TODO: This is hacky as hell--change it
     var programHolder: List<ParseTree>? = ArrayList()
-    var functionVar = 0.0
 
     override fun enterProgram(ctx: DartmouthBASICParser.ProgramContext) {
     }
@@ -29,24 +25,6 @@ class Listener: DartmouthBASICBaseListener() {
         if (printList.delimiter() != null)
             printable += if (printList.delimiter().text == ",") "               " else " "
         return if (printList.printList() != null) processPrintList(printList.printList(), printable) else printable
-    }
-
-    override fun enterFunctionStatement(ctx: DartmouthBASICParser.FunctionStatementContext) {
-        functionTable[ctx.FUNCTION_NAME().text] = ctx.expression()
-    }
-
-    override fun exitFunctionStatement(ctx: DartmouthBASICParser.FunctionStatementContext?) {
-        super.exitFunctionStatement(ctx)
-    }
-
-    private fun processFunction(fnn: String, x: Double): Double {
-        varTable["X"] = x
-
-        val funcExp = functionTable[fnn]
-
-        val evaluation = processExpression(funcExp as DartmouthBASICParser.ExpressionContext).toDouble()
-        varTable.remove("X")
-        return evaluation
     }
 
     private fun processExpression(exp: DartmouthBASICParser.ExpressionContext): String {
@@ -73,9 +51,12 @@ class Listener: DartmouthBASICBaseListener() {
         val def = Listener()
         def.varTable = varTable
         def.statementTable = statementTable
-        def.gotoAndSubTable = gotoAndSubTable
         val walker = ParseTreeWalker()
-        val prunedProgram = gotoAndSubTable[gotoIndex]
+        val prunedProgram = pruneProgram(
+            statement?.parent?.parent?.parent as DartmouthBASICParser.ProgramContext,
+            (statement.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt(),
+            gotoIndex
+        )
         walker.walk(def, prunedProgram)
     }
 
@@ -111,11 +92,7 @@ class Listener: DartmouthBASICBaseListener() {
     override fun enterPrintStatement(ctx: DartmouthBASICParser.PrintStatementContext) {
 //        statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
         val printString = processPrintList(ctx.printList(), "")
-
-        if (ctx.SEMI_COLON() != null)
-            print(printString)
-        else
-            println(printString)
+        println(printString)
     }
 
     private fun reference(context: DartmouthBASICParser.ReferenceExpressionContext): Double {
@@ -186,7 +163,17 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     private fun argument(exp: DartmouthBASICParser.ArgumentExpressionContext): Double {
-        // Standard library functions
+        // Standard library funcions
+//        ABS The absolute value
+//                ATN The arctangent
+//        COS The cosine
+//        EXP The exponential, i.e., e^x
+//        INT The integer part (truncating toward 0)
+//        LOG The natural logarithm
+//                RND The next random number
+//        SIN The sine
+//        SQR The square root
+//                TAN The tangent
         return when (exp.FUNCTION_NAME().text) {
             "ABS" -> abs(arithmeticSwitch(exp.expression()))
             "COS" -> cos(arithmeticSwitch(exp.expression()))
@@ -196,24 +183,13 @@ class Listener: DartmouthBASICBaseListener() {
             "SIN" -> sin(arithmeticSwitch(exp.expression()))
             "SQR" -> sqrt(arithmeticSwitch(exp.expression()))
             "RND" -> Math.random()
-            else -> processFunction(exp.FUNCTION_NAME().text, arithmeticSwitch(exp.expression()))
+            else -> 0.0 //TODO: Replace with proper function call here
         }
 
     }
 
     override fun enterEndStatement(ctx: DartmouthBASICParser.EndStatementContext) {
-        val children = (ctx.parent.parent.parent as DartmouthBASICParser.ProgramContext).children
-        val terminalNode = children.last()
-        val lineNumber = (ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()
-        var index = 0
-
-        for (i in 0 .. children.size - 2)
-            if ((children[i] as DartmouthBASICParser.LineContext).number().text.toInt() == lineNumber)
-                index = i
-
-        (ctx.parent.parent.parent as DartmouthBASICParser.ProgramContext).children = listOf(terminalNode)
-
-        throw ParseCancellationException()
+//        statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
     }
 
     override fun enterInputStatement(ctx: DartmouthBASICParser.InputStatementContext) {
@@ -256,12 +232,16 @@ class Listener: DartmouthBASICBaseListener() {
         statementTable[statementLine] = ctx
         val computedExp = evaluateBooleanExpression(ctx.expression().first())
         if (computedExp) {
+            val statement = statementTable[ctx.expression().last().text.toInt()]
             val def = Listener()
             def.varTable = varTable
             def.statementTable = statementTable
-            def.gotoAndSubTable = gotoAndSubTable
             val walker = ParseTreeWalker()
-            val prunedProgram = gotoAndSubTable[statementLine]
+            val prunedProgram = pruneProgram(
+                statement?.parent?.parent?.parent as DartmouthBASICParser.ProgramContext,
+                (statement.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt(),
+                statementLine
+            )
             walker.walk(def, prunedProgram)
         }
     }
@@ -269,51 +249,6 @@ class Listener: DartmouthBASICBaseListener() {
     override fun exitConditionalStatement(ctx: DartmouthBASICParser.ConditionalStatementContext) {
         if (programHolder?.size!! > 0)
             (ctx.parent.parent.parent as DartmouthBASICParser.ProgramContext).children = programHolder
-    }
-
-    override fun enterForStatement(ctx: DartmouthBASICParser.ForStatementContext) {
-        val step = if (ctx.STEP() != null) processExpression(ctx.expression().last()).toDouble() else 1.0
-        val varName = ctx.varName().text
-        val toValue = processExpression(ctx.expression()[1]).toDouble()
-        varTable[varName] = processExpression(ctx.expression().first())
-        var i = varTable[varName].toString().toDouble()
-        val def = Listener()
-        def.varTable = varTable
-        def.statementTable = statementTable
-        def.functionTable = functionTable
-        val walker = ParseTreeWalker()
-
-        while (i <= toValue) {
-            varTable[varName] = i
-            ctx.loopBody().line().forEach { statement ->
-                walker.walk(def, statement)
-                varTable = def.varTable
-            }
-            i += step
-        }
-    }
-
-    override fun enterGosubStatement(ctx: DartmouthBASICParser.GosubStatementContext) {
-        val subStatements = mutableListOf<ParserRuleContext>()
-
-        run breaking@ {
-            statementTable.forEach { (key, context) ->
-                if (key >= ctx.expression().text.toInt()) subStatements.add(context)
-                if (context is DartmouthBASICParser.ReturnStatementContext)
-                    return@breaking
-            }
-        }
-
-        val def = Listener()
-        def.varTable = varTable
-        def.statementTable = statementTable
-        def.functionTable = functionTable
-        val walker = ParseTreeWalker()
-
-        subStatements.forEach { context ->
-            walker.walk(def, context)
-            varTable = def.varTable
-        }
     }
 }
 

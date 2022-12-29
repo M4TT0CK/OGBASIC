@@ -80,12 +80,12 @@ functionStatement
     ;
 
 printStatement
-    : PRINT printList
+    : PRINT printList SEMI_COLON?
     ;
 
 printList
     : expression delimiter printList
-    | expression delimiter?
+    | expression
     ;
 
 gotoStatement
