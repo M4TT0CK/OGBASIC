@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.tree.ParseTree
 class PreListener: DartmouthBASICBaseListener() {
     var statementTable = mutableMapOf<Int, ParserRuleContext>()
     var gotoAndSubTable = mutableMapOf<Int, DartmouthBASICParser.ProgramContext>()
+    var data = mutableListOf<Double>()
 
     override fun enterPrintStatement(ctx: DartmouthBASICParser.PrintStatementContext) {
         statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
@@ -30,6 +31,12 @@ class PreListener: DartmouthBASICBaseListener() {
 
     override fun enterReturnStatement(ctx: DartmouthBASICParser.ReturnStatementContext) {
         statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
+    }
+
+    override fun enterDataStatement(ctx: DartmouthBASICParser.DataStatementContext) {
+        ctx.constantList().constant().forEach { const ->
+            data.add(const.text.toDouble())
+        }
     }
 
     override fun enterGotoStatement(ctx: DartmouthBASICParser.GotoStatementContext) {

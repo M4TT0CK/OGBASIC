@@ -153,6 +153,9 @@ integer
 real
     : integer '.' integer
     | '.' integer
+    | '-' integer
+    | '-' integer '.' integer
+    | '-' '.' integer
     ;
 
 constant

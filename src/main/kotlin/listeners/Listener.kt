@@ -15,6 +15,8 @@ class Listener: DartmouthBASICBaseListener() {
     //TODO: This is hacky as hell--change it
     var programHolder: List<ParseTree>? = ArrayList()
     var functionVar = 0.0
+    var data = mutableListOf<Double>()
+    var dataCounter = 0
 
     override fun enterProgram(ctx: DartmouthBASICParser.ProgramContext) {
     }
@@ -74,6 +76,7 @@ class Listener: DartmouthBASICBaseListener() {
         def.varTable = varTable
         def.statementTable = statementTable
         def.gotoAndSubTable = gotoAndSubTable
+        def.data = data
         val walker = ParseTreeWalker()
         val prunedProgram = gotoAndSubTable[gotoIndex]
         walker.walk(def, prunedProgram)
@@ -313,6 +316,13 @@ class Listener: DartmouthBASICBaseListener() {
         subStatements.forEach { context ->
             walker.walk(def, context)
             varTable = def.varTable
+        }
+    }
+
+    override fun enterReadStatement(ctx: DartmouthBASICParser.ReadStatementContext) {
+        ctx.idList().varName().forEach { varName ->
+            varTable[varName.text] = data[dataCounter]
+            dataCounter++
         }
     }
 }

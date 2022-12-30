@@ -9,14 +9,15 @@ import java.lang.Exception
 
 fun main(args: Array<String>) {
     val sampleCode = """
-        10 LET X = 0
-        20 GOSUB 50
-        30 LET X = X - 1
-        40 PRINT X
-        50 LET X = X + 1
-        60 PRINT X
-        70 RETURN
-        80 END
+15 READ X, Y, Z
+20 READ N
+25 PRINT X
+30 PRINT Y
+35 PRINT Z
+40 PRINT N
+40 DATA 4.2, 7.5, 25.1, -1, .1, .01, .001, .0001
+45 DATA .2, .02, .002, .0002, .015, .025, .3, .03, .003
+50 END
         
     """.trimIndent()
 //        """
@@ -69,6 +70,7 @@ fun main(args: Array<String>) {
     walker.walk(pre, tree)
     def.statementTable = pre.statementTable
     def.gotoAndSubTable = pre.gotoAndSubTable
+    def.data = pre.data
     try {
         walker.walk(def, tree)
     } catch (e: Exception) {
