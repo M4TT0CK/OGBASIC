@@ -91,6 +91,12 @@ public interface DartmouthBASICVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitIdList(DartmouthBASICParser.IdListContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link DartmouthBASICParser#id}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitId(DartmouthBASICParser.IdContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link DartmouthBASICParser#assignmentStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -178,6 +184,20 @@ public interface DartmouthBASICVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAdditiveExpression(DartmouthBASICParser.AdditiveExpressionContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code TableInvocationExpression}
+	 * labeled alternative in {@link DartmouthBASICParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTableInvocationExpression(DartmouthBASICParser.TableInvocationExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ListInvocationExpression}
+	 * labeled alternative in {@link DartmouthBASICParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitListInvocationExpression(DartmouthBASICParser.ListInvocationExpressionContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code LiteralExpression}
 	 * labeled alternative in {@link DartmouthBASICParser#expression}.
 	 * @param ctx the parse tree
@@ -220,6 +240,12 @@ public interface DartmouthBASICVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArgumentExpression(DartmouthBASICParser.ArgumentExpressionContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link DartmouthBASICParser#tableArguments}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTableArguments(DartmouthBASICParser.TableArgumentsContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link DartmouthBASICParser#comparator}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -237,6 +263,12 @@ public interface DartmouthBASICVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitVarName(DartmouthBASICParser.VarNameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link DartmouthBASICParser#listName}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitListName(DartmouthBASICParser.ListNameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link DartmouthBASICParser#integer}.
 	 * @param ctx the parse tree

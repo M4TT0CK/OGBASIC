@@ -140,6 +140,16 @@ public interface DartmouthBASICListener extends ParseTreeListener {
 	 */
 	void exitIdList(DartmouthBASICParser.IdListContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link DartmouthBASICParser#id}.
+	 * @param ctx the parse tree
+	 */
+	void enterId(DartmouthBASICParser.IdContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link DartmouthBASICParser#id}.
+	 * @param ctx the parse tree
+	 */
+	void exitId(DartmouthBASICParser.IdContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link DartmouthBASICParser#assignmentStatement}.
 	 * @param ctx the parse tree
 	 */
@@ -286,6 +296,30 @@ public interface DartmouthBASICListener extends ParseTreeListener {
 	 */
 	void exitAdditiveExpression(DartmouthBASICParser.AdditiveExpressionContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code TableInvocationExpression}
+	 * labeled alternative in {@link DartmouthBASICParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterTableInvocationExpression(DartmouthBASICParser.TableInvocationExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code TableInvocationExpression}
+	 * labeled alternative in {@link DartmouthBASICParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitTableInvocationExpression(DartmouthBASICParser.TableInvocationExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ListInvocationExpression}
+	 * labeled alternative in {@link DartmouthBASICParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterListInvocationExpression(DartmouthBASICParser.ListInvocationExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ListInvocationExpression}
+	 * labeled alternative in {@link DartmouthBASICParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitListInvocationExpression(DartmouthBASICParser.ListInvocationExpressionContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code LiteralExpression}
 	 * labeled alternative in {@link DartmouthBASICParser#expression}.
 	 * @param ctx the parse tree
@@ -358,6 +392,16 @@ public interface DartmouthBASICListener extends ParseTreeListener {
 	 */
 	void exitArgumentExpression(DartmouthBASICParser.ArgumentExpressionContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link DartmouthBASICParser#tableArguments}.
+	 * @param ctx the parse tree
+	 */
+	void enterTableArguments(DartmouthBASICParser.TableArgumentsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link DartmouthBASICParser#tableArguments}.
+	 * @param ctx the parse tree
+	 */
+	void exitTableArguments(DartmouthBASICParser.TableArgumentsContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link DartmouthBASICParser#comparator}.
 	 * @param ctx the parse tree
 	 */
@@ -387,6 +431,16 @@ public interface DartmouthBASICListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitVarName(DartmouthBASICParser.VarNameContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link DartmouthBASICParser#listName}.
+	 * @param ctx the parse tree
+	 */
+	void enterListName(DartmouthBASICParser.ListNameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link DartmouthBASICParser#listName}.
+	 * @param ctx the parse tree
+	 */
+	void exitListName(DartmouthBASICParser.ListNameContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link DartmouthBASICParser#integer}.
 	 * @param ctx the parse tree

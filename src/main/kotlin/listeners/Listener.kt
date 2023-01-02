@@ -4,19 +4,17 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeWalker
-import org.antlr.v4.runtime.tree.TerminalNode
 import kotlin.math.*
 
 class Listener: DartmouthBASICBaseListener() {
     private var varTable = mutableMapOf<String, Any>()
     var statementTable = mutableMapOf<Int, ParserRuleContext>()
-    var functionTable = mutableMapOf<String, Any>()
+    private var functionTable = mutableMapOf<String, Any>()
     var gotoAndSubTable: MutableMap<Int, DartmouthBASICParser.ProgramContext> = mutableMapOf()
     //TODO: This is hacky as hell--change it
     var programHolder: List<ParseTree>? = ArrayList()
-    var functionVar = 0.0
     var data = mutableListOf<Double>()
-    var dataCounter = 0
+    private var dataCounter = 0
 
     override fun enterProgram(ctx: DartmouthBASICParser.ProgramContext) {
     }
@@ -65,8 +63,17 @@ class Listener: DartmouthBASICBaseListener() {
             is DartmouthBASICParser.UnaryExpressionContext -> recursiveUnary(exp).toString()
             is DartmouthBASICParser.ExponentionalExpressionContext -> recursiveExponent(exp).toString()
             is DartmouthBASICParser.ReferenceExpressionContext -> reference(exp).toString()
+            is DartmouthBASICParser.ArgumentExpressionContext -> argument(exp).toString()
+            is DartmouthBASICParser.ListInvocationExpressionContext -> listInvocation(exp).toString()
             else -> ""
         }
+    }
+
+    private fun listInvocation(exp: DartmouthBASICParser.ListInvocationExpressionContext): Double {
+        val varName = exp.VAR().text
+        val index = (if (exp.DIGITS() != null) exp.DIGITS().text.toInt() else varTable[exp.varName().text].toString().toDouble().toInt())
+
+        return (varTable[varName] as MutableMap<Int, Double>)[index].toString().toDouble()
     }
 
     override fun enterGotoStatement(ctx: DartmouthBASICParser.GotoStatementContext) {
@@ -82,41 +89,12 @@ class Listener: DartmouthBASICBaseListener() {
         walker.walk(def, prunedProgram)
     }
 
-    private fun pruneProgram(ctx: DartmouthBASICParser.ProgramContext,
-                             statementLine: Int,
-                             gotoLine: Int): DartmouthBASICParser.ProgramContext {
-        var index = 0
-        val children = ctx.children
-        //TODO: split this into its own function to remove redundancy
-        for (i in 0..children.size - 2)
-            if ((children[i] as DartmouthBASICParser.LineContext).number().text.toInt() == statementLine)
-                index = i
-
-        var endIndex = 0
-        for (i in 0 .. children.size - 2)
-            if ((children[i] as DartmouthBASICParser.LineContext).number().text.toInt() == gotoLine)
-                endIndex = i
-
-//        for (i in 0 .. children.size)
-        if (index <= endIndex) {
-            ctx.children = children.subList(index, endIndex + 1)
-            ctx.children.add(children.last())
-        }
-        else {
-            ctx.children = children.subList(index, children.size - 2)
-            if (ctx.children.size == 0)
-                ctx.children.add(children.last())
-        }
-//        ctx.children = children.subList(index, endIndex + 1)
-        return ctx
-    }
-
     override fun enterPrintStatement(ctx: DartmouthBASICParser.PrintStatementContext) {
 //        statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
         val printString = processPrintList(ctx.printList(), "")
 
         if (ctx.SEMI_COLON() != null)
-            print(printString)
+            print("$printString ")
         else
             println(printString)
     }
@@ -284,16 +262,22 @@ class Listener: DartmouthBASICBaseListener() {
         def.varTable = varTable
         def.statementTable = statementTable
         def.functionTable = functionTable
+        def.data = data
+        def.dataCounter = dataCounter
         val walker = ParseTreeWalker()
 
         while (i <= toValue) {
             varTable[varName] = i
-            ctx.loopBody().line().forEach { statement ->
-                walker.walk(def, statement)
-                varTable = def.varTable
-            }
+//            ctx.loopBody().line().forEach { statement ->
+//                walker.walk(def, statement)
+//                varTable = def.varTable
+//            }
+            walker.walk(def, ctx.loopBody())
+            varTable = def.varTable
             i += step
         }
+
+        ctx.loopBody().children = mutableListOf()
     }
 
     override fun enterGosubStatement(ctx: DartmouthBASICParser.GosubStatementContext) {
@@ -320,8 +304,26 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterReadStatement(ctx: DartmouthBASICParser.ReadStatementContext) {
-        ctx.idList().varName().forEach { varName ->
-            varTable[varName.text] = data[dataCounter]
+        ctx.idList().id().forEach { id ->
+            if (id.varName() != null)
+                varTable[id.varName().text] = data[dataCounter]
+            if (id.listName() != null)
+                processListAssignment(id.listName())
+        }
+    }
+
+    private fun processListAssignment(list: DartmouthBASICParser.ListNameContext) {
+        val listName = list.VAR().text
+        val index =
+            (if (list.DIGITS() != null) list.DIGITS().text.toInt() else varTable[list.varName().text].toString().toDouble().toInt())
+
+        if (varTable[listName] != null) {
+            (varTable[listName] as MutableMap<Int, Double>)[index] = data[dataCounter]
+            dataCounter++
+        }
+        else {
+            varTable[listName] = mutableMapOf<Int, Double>()
+            (varTable[listName] as MutableMap<Int, Double>)[index] = data[dataCounter]
             dataCounter++
         }
     }

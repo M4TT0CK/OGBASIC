@@ -68,7 +68,11 @@ readStatement
     ;
 
 idList
-    : varName (',' varName)*
+    : id (',' id)*
+    ;
+
+id
+    : varName | listName
     ;
 
 assignmentStatement
@@ -127,8 +131,14 @@ expression
    | expression (MULT | DIVIDE) expression  #MultiplicativeExpression
    | expression (ADD | SUBTRACT) expression #AdditiveExpression
    | FUNCTION_NAME '(' expression ')'       #ArgumentExpression
+   | VAR '(' tableArguments ')'             #TableInvocationExpression
+   | VAR '(' (varName | DIGITS) ')'         #ListInvocationExpression
    | expression comparator expression       #EqualityExpression
    ;
+
+tableArguments
+    : varName ',' varName
+    ;
 
 comparator
    : ('<' ('>' | '=' )?)
@@ -143,7 +153,11 @@ number
    ;
 
 varName
-    : VAR DIGIT?
+    : VAR DIGITS?
+    ;
+
+listName
+    : VAR '(' (varName | DIGITS) ')'
     ;
 
 integer

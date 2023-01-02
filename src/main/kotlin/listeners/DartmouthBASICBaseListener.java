@@ -175,6 +175,18 @@ public class DartmouthBASICBaseListener implements DartmouthBASICListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterId(DartmouthBASICParser.IdContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitId(DartmouthBASICParser.IdContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterAssignmentStatement(DartmouthBASICParser.AssignmentStatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -343,6 +355,30 @@ public class DartmouthBASICBaseListener implements DartmouthBASICListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterTableInvocationExpression(DartmouthBASICParser.TableInvocationExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTableInvocationExpression(DartmouthBASICParser.TableInvocationExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterListInvocationExpression(DartmouthBASICParser.ListInvocationExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitListInvocationExpression(DartmouthBASICParser.ListInvocationExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterLiteralExpression(DartmouthBASICParser.LiteralExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -415,6 +451,18 @@ public class DartmouthBASICBaseListener implements DartmouthBASICListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterTableArguments(DartmouthBASICParser.TableArgumentsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTableArguments(DartmouthBASICParser.TableArgumentsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterComparator(DartmouthBASICParser.ComparatorContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -446,6 +494,18 @@ public class DartmouthBASICBaseListener implements DartmouthBASICListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitVarName(DartmouthBASICParser.VarNameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterListName(DartmouthBASICParser.ListNameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitListName(DartmouthBASICParser.ListNameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
