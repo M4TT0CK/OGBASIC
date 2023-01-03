@@ -240,12 +240,6 @@ public interface DartmouthBASICVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArgumentExpression(DartmouthBASICParser.ArgumentExpressionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link DartmouthBASICParser#tableArguments}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTableArguments(DartmouthBASICParser.TableArgumentsContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link DartmouthBASICParser#comparator}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

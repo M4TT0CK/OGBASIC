@@ -451,18 +451,6 @@ public class DartmouthBASICBaseListener implements DartmouthBASICListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTableArguments(DartmouthBASICParser.TableArgumentsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTableArguments(DartmouthBASICParser.TableArgumentsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterComparator(DartmouthBASICParser.ComparatorContext ctx) { }
 	/**
 	 * {@inheritDoc}

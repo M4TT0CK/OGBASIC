@@ -68,6 +68,7 @@ class Listener: DartmouthBASICBaseListener() {
             is DartmouthBASICParser.ReferenceExpressionContext -> reference(exp).toString()
             is DartmouthBASICParser.ArgumentExpressionContext -> argument(exp).toString()
             is DartmouthBASICParser.ListInvocationExpressionContext -> listInvocation(exp).toString()
+            is DartmouthBASICParser.TableInvocationExpressionContext -> tableInvocation(exp).toString()
             else -> ""
         }
     }
@@ -77,6 +78,21 @@ class Listener: DartmouthBASICBaseListener() {
         val index = (if (exp.DIGITS() != null) exp.DIGITS().text.toInt() else varTable[exp.varName().text].toString().toDouble().toInt())
 
         return (varTable[varName] as MutableMap<Int, Double>)[index].toString().toDouble()
+    }
+
+    private fun tableInvocation(table: DartmouthBASICParser.TableInvocationExpressionContext): Double {
+        val tableName = table.VAR().text
+        val row =
+            if (table.tableNameArg().first().DIGITS() != null) table.tableNameArg().first().DIGITS().text.toInt()
+            else varTable[table.tableNameArg().first().varName().text].toString().toDouble().toInt()
+        val column =
+            if (table.tableNameArg().last().DIGITS() != null) table.tableNameArg().last().DIGITS().text.toInt()
+            else varTable[table.tableNameArg().last().varName().text].toString().toDouble().toInt()
+
+        val dataTable = (varTable[tableName] as MutableMap<Int, MutableMap<Int, Double>>)
+        val rowTable = dataTable[row]
+
+        return (rowTable as MutableMap<Int, Double>)[column].toString().toDouble()
     }
 
     override fun enterGotoStatement(ctx: DartmouthBASICParser.GotoStatementContext) {
@@ -360,8 +376,6 @@ class Listener: DartmouthBASICBaseListener() {
             varTable[tableName] = dataTable
             dataCounter++
         }
-
-        println()
     }
 }
 

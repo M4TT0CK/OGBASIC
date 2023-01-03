@@ -123,22 +123,18 @@ delimiter
     ;
 
 expression
-   : varName                                #ReferenceExpression
-   | (STRING | number)                      #LiteralExpression
-   | '(' expression ')'                     #ParenthesizedExpression
-   | '-' expression                         #UnaryExpression
-   | expression '^' expression              #ExponentionalExpression
-   | expression (MULT | DIVIDE) expression  #MultiplicativeExpression
-   | expression (ADD | SUBTRACT) expression #AdditiveExpression
-   | FUNCTION_NAME '(' expression ')'       #ArgumentExpression
-   | VAR '(' tableArguments ')'             #TableInvocationExpression
-   | VAR '(' (varName | DIGITS) ')'         #ListInvocationExpression
-   | expression comparator expression       #EqualityExpression
+   : varName                                               #ReferenceExpression
+   | (STRING | number)                                     #LiteralExpression
+   | '(' expression ')'                                    #ParenthesizedExpression
+   | '-' expression                                        #UnaryExpression
+   | expression '^' expression                             #ExponentionalExpression
+   | expression (MULT | DIVIDE) expression                 #MultiplicativeExpression
+   | expression (ADD | SUBTRACT) expression                #AdditiveExpression
+   | FUNCTION_NAME '(' expression ')'                      #ArgumentExpression
+   | VAR '(' tableNameArg ',' tableNameArg ')'             #TableInvocationExpression
+   | VAR '(' (varName | DIGITS) ')'                        #ListInvocationExpression
+   | expression comparator expression                      #EqualityExpression
    ;
-
-tableArguments
-    : varName ',' varName
-    ;
 
 comparator
    : ('<' ('>' | '=' )?)

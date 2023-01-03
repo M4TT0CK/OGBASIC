@@ -392,16 +392,6 @@ public interface DartmouthBASICListener extends ParseTreeListener {
 	 */
 	void exitArgumentExpression(DartmouthBASICParser.ArgumentExpressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link DartmouthBASICParser#tableArguments}.
-	 * @param ctx the parse tree
-	 */
-	void enterTableArguments(DartmouthBASICParser.TableArgumentsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link DartmouthBASICParser#tableArguments}.
-	 * @param ctx the parse tree
-	 */
-	void exitTableArguments(DartmouthBASICParser.TableArgumentsContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link DartmouthBASICParser#comparator}.
 	 * @param ctx the parse tree
 	 */

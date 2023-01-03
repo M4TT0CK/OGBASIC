@@ -16,6 +16,9 @@ fun main(args: Array<String>) {
         40 PRINT P(3)
         50 PRINT P(2)
         60 PRINT P(1)
+        61 PRINT Q(1,1)
+        62 PRINT Q(2,1)
+        63 PRINT Q(3,1)
         70 DATA 1, 2, 3, 4, 5, 6, 7, 8, 9
         80 END
 
