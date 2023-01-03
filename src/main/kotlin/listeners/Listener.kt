@@ -15,6 +15,8 @@ class Listener: DartmouthBASICBaseListener() {
     var programHolder: List<ParseTree>? = ArrayList()
     var data = mutableListOf<Double>()
     private var dataCounter = 0
+    //TODO: This is also hacky
+    private var inLoop = false
 
     override fun enterProgram(ctx: DartmouthBASICParser.ProgramContext) {
     }
@@ -32,6 +34,7 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterFunctionStatement(ctx: DartmouthBASICParser.FunctionStatementContext) {
+        if (inLoop) return
         functionTable[ctx.FUNCTION_NAME().text] = ctx.expression()
     }
 
@@ -77,6 +80,7 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterGotoStatement(ctx: DartmouthBASICParser.GotoStatementContext) {
+        if (inLoop) return
         val statement = statementTable[ctx.expression().text.toInt()]
         val gotoIndex = (ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()
         val def = Listener()
@@ -90,6 +94,7 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterPrintStatement(ctx: DartmouthBASICParser.PrintStatementContext) {
+        if (inLoop) return
 //        statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
         val printString = processPrintList(ctx.printList(), "")
 
@@ -146,6 +151,7 @@ class Listener: DartmouthBASICBaseListener() {
 
     override fun enterAssignmentStatement(ctx: DartmouthBASICParser.AssignmentStatementContext) {
 //        statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
+        if (inLoop) return
         val varName = ctx.varName().text
 
         when (ctx.expression()) {
@@ -183,6 +189,7 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterEndStatement(ctx: DartmouthBASICParser.EndStatementContext) {
+        if (inLoop) return
         val children = (ctx.parent.parent.parent as DartmouthBASICParser.ProgramContext).children
         val terminalNode = children.last()
         val lineNumber = (ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()
@@ -198,6 +205,7 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterInputStatement(ctx: DartmouthBASICParser.InputStatementContext) {
+        if (inLoop) return
 //        statementTable[(ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()] = ctx
         val varName = ctx.expression().text
         val value = readln()
@@ -233,6 +241,7 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterConditionalStatement(ctx: DartmouthBASICParser.ConditionalStatementContext) {
+        if (inLoop) return
         val statementLine = (ctx.parent.parent as DartmouthBASICParser.LineContext).number().text.toInt()
         statementTable[statementLine] = ctx
         val computedExp = evaluateBooleanExpression(ctx.expression().first())
@@ -253,6 +262,7 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterForStatement(ctx: DartmouthBASICParser.ForStatementContext) {
+        inLoop = true
         val step = if (ctx.STEP() != null) processExpression(ctx.expression().last()).toDouble() else 1.0
         val varName = ctx.varName().text
         val toValue = processExpression(ctx.expression()[1]).toDouble()
@@ -268,19 +278,18 @@ class Listener: DartmouthBASICBaseListener() {
 
         while (i <= toValue) {
             varTable[varName] = i
-//            ctx.loopBody().line().forEach { statement ->
-//                walker.walk(def, statement)
-//                varTable = def.varTable
-//            }
             walker.walk(def, ctx.loopBody())
             varTable = def.varTable
             i += step
         }
+    }
 
-        ctx.loopBody().children = mutableListOf()
+    override fun exitForStatement(ctx: DartmouthBASICParser.ForStatementContext) {
+        inLoop = false
     }
 
     override fun enterGosubStatement(ctx: DartmouthBASICParser.GosubStatementContext) {
+        if (inLoop) return
         val subStatements = mutableListOf<ParserRuleContext>()
 
         run breaking@ {
@@ -304,11 +313,14 @@ class Listener: DartmouthBASICBaseListener() {
     }
 
     override fun enterReadStatement(ctx: DartmouthBASICParser.ReadStatementContext) {
+        if (inLoop) return
         ctx.idList().id().forEach { id ->
             if (id.varName() != null)
                 varTable[id.varName().text] = data[dataCounter]
             if (id.listName() != null)
                 processListAssignment(id.listName())
+            if (id.tableName() != null)
+                processTableAssignment(id.tableName())
         }
     }
 
@@ -326,6 +338,30 @@ class Listener: DartmouthBASICBaseListener() {
             (varTable[listName] as MutableMap<Int, Double>)[index] = data[dataCounter]
             dataCounter++
         }
+    }
+
+    private fun processTableAssignment(table: DartmouthBASICParser.TableNameContext) {
+        val tableName = table.VAR().text
+        val row =
+            if (table.tableNameArg().first().DIGITS() != null) table.tableNameArg().first().DIGITS().text.toInt()
+            else varTable[table.tableNameArg().first().varName().text].toString().toDouble().toInt()
+        val column =
+            if (table.tableNameArg().last().DIGITS() != null) table.tableNameArg().last().DIGITS().text.toInt()
+            else varTable[table.tableNameArg().last().varName().text].toString().toDouble().toInt()
+
+        if (varTable[tableName] != null) {
+            (varTable[tableName] as MutableMap<Int, MutableMap<Int, Double>>)[row] = mutableMapOf()
+            (varTable[tableName] as MutableMap<Int, MutableMap<Int, Double>>)[row]?.set(column, data[dataCounter])
+            dataCounter++
+        } else {
+            val dataTable = mutableMapOf<Int, MutableMap<Int, Double>>()
+            dataTable[row] = mutableMapOf()
+            dataTable[row]?.set(column, data[dataCounter])
+            varTable[tableName] = dataTable
+            dataCounter++
+        }
+
+        println()
     }
 }
 

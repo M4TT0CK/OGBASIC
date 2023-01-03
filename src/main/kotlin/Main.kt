@@ -9,17 +9,15 @@ import java.lang.Exception
 
 fun main(args: Array<String>) {
     val sampleCode = """
-120 DEF FNN(X) = EXP(-(X^2/2))/SQR(2*3.14159265)
-130
-140 FOR Q = -2 TO 2 STEP .1
-150 LET Y = FNN(Q)
-160 LET Y = INT(100*Y)
-170 FOR Z = 1 TO Y
-180 PRINT " ";
-190 NEXT Z
-200 PRINT "*"
-210 NEXT Q
-220 END
+        10 FOR I = 1 TO 3
+        20 READ P(I)
+        21 READ Q(I, 1)
+        30 NEXT I
+        40 PRINT P(3)
+        50 PRINT P(2)
+        60 PRINT P(1)
+        70 DATA 1, 2, 3, 4, 5, 6, 7, 8, 9
+        80 END
 
     """.trimIndent()
 
@@ -33,10 +31,10 @@ fun main(args: Array<String>) {
     def.statementTable = pre.statementTable
     def.gotoAndSubTable = pre.gotoAndSubTable
     def.data = pre.data
-    try {
+//    try {
         walker.walk(def, tree)
-    } catch (e: Exception) {
-        println()
-        println(e)
-    }
+//    } catch (e: Exception) {
+//        println()
+//        println(e)
+//    }
 }

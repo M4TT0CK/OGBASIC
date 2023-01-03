@@ -442,6 +442,26 @@ public interface DartmouthBASICListener extends ParseTreeListener {
 	 */
 	void exitListName(DartmouthBASICParser.ListNameContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link DartmouthBASICParser#tableName}.
+	 * @param ctx the parse tree
+	 */
+	void enterTableName(DartmouthBASICParser.TableNameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link DartmouthBASICParser#tableName}.
+	 * @param ctx the parse tree
+	 */
+	void exitTableName(DartmouthBASICParser.TableNameContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link DartmouthBASICParser#tableNameArg}.
+	 * @param ctx the parse tree
+	 */
+	void enterTableNameArg(DartmouthBASICParser.TableNameArgContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link DartmouthBASICParser#tableNameArg}.
+	 * @param ctx the parse tree
+	 */
+	void exitTableNameArg(DartmouthBASICParser.TableNameArgContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link DartmouthBASICParser#integer}.
 	 * @param ctx the parse tree
 	 */

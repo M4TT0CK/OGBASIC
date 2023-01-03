@@ -72,7 +72,7 @@ idList
     ;
 
 id
-    : varName | listName
+    : varName | listName | tableName
     ;
 
 assignmentStatement
@@ -158,6 +158,15 @@ varName
 
 listName
     : VAR '(' (varName | DIGITS) ')'
+    ;
+
+tableName
+    : VAR '(' tableNameArg ',' tableNameArg ')'
+    ;
+
+tableNameArg
+    : varName
+    | DIGITS
     ;
 
 integer

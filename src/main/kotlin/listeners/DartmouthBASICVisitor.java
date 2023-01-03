@@ -270,6 +270,18 @@ public interface DartmouthBASICVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitListName(DartmouthBASICParser.ListNameContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link DartmouthBASICParser#tableName}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTableName(DartmouthBASICParser.TableNameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link DartmouthBASICParser#tableNameArg}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTableNameArg(DartmouthBASICParser.TableNameArgContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link DartmouthBASICParser#integer}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
